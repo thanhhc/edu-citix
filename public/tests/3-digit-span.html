@@ -1,0 +1,572 @@
+<!doctype html>
+<html lang="vi"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>DST</title>
+<link rel="icon" href="../favicon.svg" type="image/svg+xml">
+<style>:root{
+  --bg:#FBF8F2; --panel:#FFFFFF; --ink:#1B1B1B; --muted:#4A4A4A; --line:#D8D2C6;
+  --pri:#0B5CAD; --pri-ink:#FFFFFF; --pri-dark:#084585;
+  --ok:#1E7B34; --ok-bg:#E3F4E6; --bad:#B3261E; --bad-bg:#FBE4E2; --warn:#8A5A00; --warn-bg:#FFF2D6;
+  --radius:18px;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{background:var(--bg);color:var(--ink);font-family:"Segoe UI","Helvetica Neue",Arial,"Noto Sans","PingFang SC","Microsoft YaHei","Noto Sans CJK SC","Hiragino Sans GB",sans-serif;
+  font-size:26px;line-height:1.55;-webkit-font-smoothing:antialiased}
+.screen{display:none;min-height:100vh;width:100%}
+.screen.active{display:flex}
+.center-col{flex-direction:column;align-items:center;justify-content:center;padding:32px 24px}
+.card{background:var(--panel);border:2px solid var(--line);border-radius:var(--radius);padding:40px 48px;max-width:1100px;width:100%;
+  box-shadow:0 6px 24px rgba(0,0,0,.06)}
+h1{font-size:46px;line-height:1.25;margin:0 0 8px}
+h2{font-size:36px;line-height:1.3;margin:0 0 16px}
+.sub{font-size:24px;color:var(--muted);margin:0 0 24px}
+p{margin:0 0 18px}
+ol.steps,ul.steps{margin:0 0 20px;padding-left:1.4em}
+ol.steps li,ul.steps li{margin:0 0 12px}
+b,strong{font-weight:700}
+.btn{font:inherit;font-size:30px;font-weight:700;min-height:76px;padding:12px 40px;border-radius:14px;border:3px solid var(--pri);
+  background:var(--pri);color:var(--pri-ink);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:12px}
+.btn:hover{background:var(--pri-dark);border-color:var(--pri-dark)}
+.btn:focus-visible{outline:4px solid #F2B600;outline-offset:3px}
+.btn.secondary{background:#fff;color:var(--pri)}
+.btn.secondary:hover{background:#EEF4FB}
+.btn.small{font-size:22px;min-height:56px;padding:8px 24px}
+.btn[disabled]{opacity:.35;cursor:not-allowed}
+.row{display:flex;gap:20px;flex-wrap:wrap;align-items:center}
+.row.end{justify-content:flex-end}
+.row.center{justify-content:center}
+.field{display:flex;flex-direction:column;gap:8px;margin:0 0 20px}
+.field label{font-weight:700;font-size:24px}
+.field input{font:inherit;font-size:28px;padding:12px 16px;border:2px solid var(--line);border-radius:12px;max-width:420px}
+.field input:focus{outline:4px solid #F2B600;border-color:var(--pri)}
+.note{background:var(--warn-bg);color:var(--warn);border-radius:12px;padding:14px 18px;font-size:22px;margin:0 0 20px}
+.researcher{font-size:20px;color:var(--muted);border-top:2px dashed var(--line);margin-top:26px;padding-top:16px}
+.key{display:inline-flex;align-items:center;justify-content:center;min-width:1.9em;height:1.9em;padding:0 .35em;border:3px solid var(--ink);
+  border-bottom-width:6px;border-radius:10px;font-weight:800;background:#fff;margin:0 4px;line-height:1}
+.demo{display:flex;gap:28px;align-items:center;justify-content:center;flex-wrap:wrap;margin:10px 0 24px}
+.demo figure{margin:0;text-align:center;font-size:22px;color:var(--muted)}
+.demo img{display:block;margin:0 auto 8px;background:#fff}
+/* task stage */
+#stage{position:fixed;inset:0;background:#fff;display:none;align-items:center;justify-content:center;flex-direction:column;cursor:default;user-select:none}
+#stage.active{display:flex}
+.fix{font-size:110px;font-weight:300;line-height:1;color:#000}
+.hint{position:fixed;left:0;right:0;bottom:22px;text-align:center;font-size:26px;color:var(--muted)}
+.topinfo{position:fixed;left:0;right:0;top:16px;text-align:center;font-size:24px;color:var(--muted)}
+.feedback{font-size:56px;font-weight:800;padding:18px 48px;border-radius:18px}
+.feedback.ok{color:var(--ok);background:var(--ok-bg)}
+.feedback.bad{color:var(--bad);background:var(--bad-bg)}
+.choice-row{display:flex;gap:6vw;align-items:flex-end;justify-content:center}
+.choice{background:#fff;border:4px solid var(--line);border-radius:18px;padding:18px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:10px}
+.choice:hover{border-color:var(--pri)}
+.choice .lab{font-size:30px;font-weight:800}
+.choice.picked{border-color:var(--pri);background:#EEF4FB}
+/* rest */
+.big-count{font-size:120px;font-weight:800;color:var(--pri);line-height:1.1;margin:12px 0}
+.progress{width:100%;max-width:700px;height:22px;background:#EDE7DA;border-radius:11px;overflow:hidden;margin:10px auto 24px}
+.progress > div{height:100%;background:var(--pri)}
+/* results */
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:16px;margin:0 0 24px}
+.stat{border:2px solid var(--line);border-radius:14px;padding:16px 18px;background:#fff}
+.stat .k{font-size:19px;color:var(--muted);line-height:1.3}
+.stat .v{font-size:34px;font-weight:800;line-height:1.2;margin-top:4px;word-break:break-word}
+.stat .u{font-size:18px;color:var(--muted);font-weight:600}
+.tablewrap{max-height:60vh;overflow:auto;border:2px solid var(--line);border-radius:12px;margin:0 0 24px}
+table.res{border-collapse:collapse;width:100%;font-size:19px;background:#fff}
+table.res th,table.res td{padding:8px 12px;border-bottom:1px solid #ECE6DA;text-align:left;white-space:nowrap}
+table.res th{position:sticky;top:0;background:#F3EEE3;font-weight:700;z-index:1}
+table.res tr.bad td{background:#FFF5F4}
+.tag{display:inline-block;padding:2px 10px;border-radius:8px;font-weight:700}
+.tag.ok{background:var(--ok-bg);color:var(--ok)}
+.tag.bad{background:var(--bad-bg);color:var(--bad)}
+.results-card{max-width:1300px}
+@media (max-width:800px){body{font-size:22px}.card{padding:24px}h1{font-size:34px}}
+
+/* top bar: back link + language picker (intro screen) */
+#topbar{position:fixed;top:0;left:0;right:0;z-index:20;display:none;align-items:center;justify-content:space-between;gap:16px;padding:12px 20px;
+  background:rgba(251,248,242,.94);border-bottom:1px solid var(--line);backdrop-filter:blur(4px)}
+.backlink{font-size:22px;font-weight:700;color:var(--pri);text-decoration:none;padding:8px 4px}
+.backlink:hover{text-decoration:underline}
+.langpick{display:flex;align-items:center;gap:10px;font-size:20px;font-weight:700;color:var(--muted)}
+.langpick select{font:inherit;font-size:22px;font-weight:700;color:var(--ink);padding:8px 12px;border:2px solid var(--line);border-radius:12px;background:#fff;cursor:pointer}
+.langpick select:focus{outline:4px solid #F2B600}
+#intro{padding-top:96px}
+select{font:inherit}
+</style></head>
+<body>
+<div id="topbar"></div>
+<div id="intro" class="screen center-col"></div>
+<div id="msg" class="screen center-col"></div>
+<div id="result" class="screen center-col"></div>
+<div id="stage"></div>
+<noscript><p style="padding:24px;font-size:24px">Please enable JavaScript.</p></noscript>
+<script>
+const TEST_META = {"code": "DST", "frameCritical": false};
+const ASSETS = {};
+
+</script>
+<script>/* ===== Shared framework for all tests (runs fully in the browser, no server needed) =====
+   Languages: vi (default), en, zh (Simplified Chinese). Choose on the start page or on each test's intro screen. */
+const $ = (s, r = document) => r.querySelector(s);
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const nextFrame = () => new Promise(r => requestAnimationFrame(r));
+const now = () => performance.now();
+const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const pick = a => a[Math.floor(Math.random() * a.length)];
+const r1 = x => (x == null || isNaN(x)) ? '' : Math.round(x * 10) / 10;
+const mean = a => a.length ? a.reduce((s, x) => s + x, 0) / a.length : NaN;
+const pct = (n, d) => d ? Math.round(n / d * 1000) / 10 : 0;
+const esc = s => String(s ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+
+/* ---------- i18n ---------- */
+const LANGS = { vi: 'Tiếng Việt', en: 'English', zh: '简体中文' };
+const LOCALE = { vi: 'vi-VN', en: 'en-US', zh: 'zh-CN' };
+function initialLang() {
+  const q = new URLSearchParams(location.search).get('lang');
+  if (q && LANGS[q]) return q;
+  try { const s = localStorage.getItem('edu_lang'); if (s && LANGS[s]) return s; } catch (e) { }
+  return 'vi';
+}
+let LANG = initialLang();
+function setLang(l) {
+  LANG = LANGS[l] ? l : 'vi';
+  try { localStorage.setItem('edu_lang', LANG); } catch (e) { }
+  document.documentElement.lang = LANG === 'zh' ? 'zh-CN' : LANG;
+  const u = new URL(location.href); u.searchParams.set('lang', LANG); history.replaceState(null, '', u);
+}
+document.documentElement.lang = LANG === 'zh' ? 'zh-CN' : LANG;
+const fmtMs = x => (x == null || isNaN(x)) ? '—' : Math.round(x).toLocaleString(LOCALE[LANG]);
+const K = k => `<span class="key">${k}</span>`;
+
+const COMMON_TXT = {
+  vi: {
+    continue: 'Tiếp tục', spaceKey: 'Cách', orSpace: p => `(hoặc nhấn phím ${K(p.k)})`,
+    restTitle: 'Nghỉ giải lao', restDone: p => `Bạn đã hoàn thành <b>${p.d}/${p.t}</b> phần. Làm tốt lắm!`,
+    restRelax: 'Hãy thả lỏng, chớp mắt, nhìn ra xa và hít thở sâu.', seconds: 'giây',
+    restOver: 'Hết giờ nghỉ. Khi sẵn sàng, hãy bấm nút hoặc nhấn phím Cách.', ready: 'Tôi đã sẵn sàng – Tiếp tục',
+    getReady: 'Chuẩn bị…',
+    estimate: p => `⏱ Thời gian dự kiến: <b>${p.e}</b>. Hãy ngồi thoải mái, cách màn hình khoảng một cánh tay, đeo kính (nếu có).`,
+    pidLabel: 'Mã người tham gia (do nghiên cứu viên nhập)', pidPh: 'VD: P01', fullscreen: '⛶ Toàn màn hình', startPractice: 'Bắt đầu làm thử',
+    checking: 'Đang kiểm tra màn hình…',
+    rinfo: p => `Dành cho nghiên cứu viên: tần số quét màn hình đo được ≈ <b>${p.hz} Hz</b> (1 khung hình ≈ ${p.fm} ms). `,
+    rwarn: 'Khuyến nghị dùng màn hình 60 Hz; thời lượng kích thích sẽ được quy đổi theo khung hình của màn hình này.',
+    rdl: ' Kết quả có thể tải về dạng CSV/JSON ở màn hình cuối.',
+    back: '← Tất cả bài test', langLabel: 'Ngôn ngữ',
+    tActive: 'Thời gian làm bài thực (không tính nghỉ)', tRest: 'Thời gian nghỉ', times: 'lần', tMain: 'Tổng thời gian phần chính (kể cả nghỉ)',
+    tSession: 'Tổng thời gian cả phiên (kể cả hướng dẫn, làm thử)',
+    doneTitle: 'Hoàn thành! Cảm ơn bạn đã tham gia 🌿', forResearcher: 'Kết quả dưới đây dành cho nghiên cứu viên.', detailTitle: 'Chi tiết từng câu',
+    dlCsv: '⬇ Tải CSV', dlJson: '⬇ Tải JSON', next: '↺ Người tiếp theo', confirmNext: 'Bắt đầu lại cho người tiếp theo? Hãy chắc chắn bạn đã tải kết quả.',
+    pid: 'Mã người tham gia', test: 'Bài test', started: 'Bắt đầu', language: 'Ngôn ngữ',
+    ok: 'Đúng', bad: 'Sai', mKey: 'phím', mMouse: 'chuột', mTimeout: 'hết giờ',
+    practice: 'Làm thử', practiceEnd: 'Kết thúc phần làm thử', startMain: 'Bắt đầu bài chính', start: 'Bắt đầu',
+    fbOk: '✓ Đúng', fbBad: '✗ Chưa đúng',
+    cTrial: 'Lượt', cBlock: 'Phần', cAnswer: 'Đáp án', cResp: 'Trả lời', cResult: 'Kết quả', cMethod: 'Cách trả lời', cQ: 'Câu',
+    score: 'Số câu đúng (điểm)', rtCorrect: 'RT trung bình (câu đúng)', rtAll: 'RT trung bình (mọi câu)',
+  },
+  en: {
+    continue: 'Continue', spaceKey: 'Space', orSpace: p => `(or press ${K(p.k)})`,
+    restTitle: 'Take a break', restDone: p => `You have completed <b>${p.d}/${p.t}</b> parts. Well done!`,
+    restRelax: 'Relax, blink, look into the distance and take a deep breath.', seconds: 'seconds',
+    restOver: 'The break is over. When you are ready, click the button or press Space.', ready: "I'm ready – Continue",
+    getReady: 'Get ready…',
+    estimate: p => `⏱ Estimated time: <b>${p.e}</b>. Sit comfortably, about an arm's length from the screen, and wear your glasses if you use them.`,
+    pidLabel: 'Participant ID (entered by the researcher)', pidPh: 'e.g. P01', fullscreen: '⛶ Full screen', startPractice: 'Start practice',
+    checking: 'Checking the screen…',
+    rinfo: p => `For the researcher: measured screen refresh rate ≈ <b>${p.hz} Hz</b> (1 frame ≈ ${p.fm} ms). `,
+    rwarn: 'A 60 Hz screen is recommended; stimulus durations will be converted to the frames of this screen.',
+    rdl: ' Results can be downloaded as CSV/JSON on the final screen.',
+    back: '← All tests', langLabel: 'Language',
+    tActive: 'Active test time (excluding breaks)', tRest: 'Break time', times: 'times', tMain: 'Main test total (including breaks)',
+    tSession: 'Whole session (including instructions and practice)',
+    doneTitle: 'Finished! Thank you for taking part 🌿', forResearcher: 'The results below are for the researcher.', detailTitle: 'Trial-by-trial details',
+    dlCsv: '⬇ Download CSV', dlJson: '⬇ Download JSON', next: '↺ Next participant', confirmNext: 'Start again for the next participant? Make sure you have downloaded the results.',
+    pid: 'Participant ID', test: 'Test', started: 'Started', language: 'Language',
+    ok: 'Correct', bad: 'Wrong', mKey: 'key', mMouse: 'mouse', mTimeout: 'timeout',
+    practice: 'Practice', practiceEnd: 'Practice complete', startMain: 'Start the main test', start: 'Start',
+    fbOk: '✓ Correct', fbBad: '✗ Not correct',
+    cTrial: 'Trial', cBlock: 'Block', cAnswer: 'Correct answer', cResp: 'Response', cResult: 'Result', cMethod: 'Input', cQ: 'Item',
+    score: 'Correct (score)', rtCorrect: 'Mean RT (correct)', rtAll: 'Mean RT (all)',
+  },
+  zh: {
+    continue: '继续', spaceKey: '空格', orSpace: p => `（或按 ${K(p.k)} 键）`,
+    restTitle: '休息一下', restDone: p => `您已完成 <b>${p.d}/${p.t}</b> 部分，做得很好！`,
+    restRelax: '请放松，眨眨眼，望向远处，深呼吸。', seconds: '秒',
+    restOver: '休息结束。准备好后，请点击按钮或按空格键。', ready: '我准备好了 – 继续',
+    getReady: '准备…',
+    estimate: p => `⏱ 预计用时：<b>${p.e}</b>。请舒适地坐好，与屏幕保持约一臂距离，如需戴眼镜请戴上。`,
+    pidLabel: '被试编号（由研究人员填写）', pidPh: '例如：P01', fullscreen: '⛶ 全屏', startPractice: '开始练习',
+    checking: '正在检测屏幕…',
+    rinfo: p => `研究人员参考：屏幕刷新率约为 <b>${p.hz} Hz</b>（1 帧 ≈ ${p.fm} 毫秒）。`,
+    rwarn: '建议使用 60 Hz 屏幕；刺激呈现时间将按本屏幕的帧数换算。',
+    rdl: '测试结束后可在最后一页下载 CSV/JSON 结果。',
+    back: '← 全部测试', langLabel: '语言',
+    tActive: '实际答题时间（不含休息）', tRest: '休息时间', times: '次', tMain: '正式测试总时长（含休息）',
+    tSession: '整个流程总时长（含说明和练习）',
+    doneTitle: '完成！感谢您的参与 🌿', forResearcher: '以下结果供研究人员使用。', detailTitle: '逐题详情',
+    dlCsv: '⬇ 下载 CSV', dlJson: '⬇ 下载 JSON', next: '↺ 下一位被试', confirmNext: '要为下一位被试重新开始吗？请确认已下载结果。',
+    pid: '被试编号', test: '测试', started: '开始时间', language: '语言',
+    ok: '正确', bad: '错误', mKey: '按键', mMouse: '鼠标', mTimeout: '超时',
+    practice: '练习', practiceEnd: '练习结束', startMain: '开始正式测试', start: '开始',
+    fbOk: '✓ 正确', fbBad: '✗ 不正确',
+    cTrial: '试次', cBlock: '组块', cAnswer: '正确答案', cResp: '回答', cResult: '结果', cMethod: '作答方式', cQ: '题号',
+    score: '正确数（得分）', rtCorrect: '平均反应时（正确）', rtAll: '平均反应时（全部）',
+  },
+};
+function t(key, p = {}) {
+  const T = (typeof TXT !== 'undefined' ? TXT : {});
+  let v = T[LANG]?.[key] ?? COMMON_TXT[LANG]?.[key] ?? T.vi?.[key] ?? COMMON_TXT.vi[key];
+  if (v == null) return key;
+  return typeof v === 'function' ? v(p) : v;
+}
+
+/* ---------- session state ---------- */
+const S = {
+  test: TEST_META.code, pid: '',
+  startedISO: null, tSession: null, tMainStart: null, tMainEnd: null,
+  rests: [], frameMs: 1000 / 60, refreshHz: 60, running: false, suffix: '',
+};
+
+/* ---------- screens ---------- */
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  $('#stage').classList.remove('active');
+  if (id === 'stage') $('#stage').classList.add('active'); else $('#' + id).classList.add('active');
+  const tb = $('#topbar'); if (tb) tb.style.display = id === 'intro' ? 'flex' : 'none';
+  window.scrollTo(0, 0);
+}
+function stage(html) { const st = $('#stage'); st.innerHTML = html; if (!st.classList.contains('active')) showScreen('stage'); return st; }
+
+/* ---------- beep ---------- */
+let _ac;
+function beep(freq = 440, dur = 180, vol = 0.25) {
+  try {
+    _ac = _ac || new (window.AudioContext || window.webkitAudioContext)();
+    const o = _ac.createOscillator(), g = _ac.createGain();
+    o.frequency.value = freq; o.type = 'sine'; g.gain.value = vol;
+    o.connect(g); g.connect(_ac.destination); o.start();
+    g.gain.exponentialRampToValueAtTime(0.0001, _ac.currentTime + dur / 1000); o.stop(_ac.currentTime + dur / 1000 + 0.02);
+  } catch (e) { }
+}
+
+/* ---------- refresh rate & frame-accurate timing ---------- */
+async function measureRefresh() {
+  const ts = []; for (let i = 0; i < 70; i++) ts.push(await nextFrame());
+  const d = []; for (let i = 11; i < ts.length; i++) d.push(ts[i] - ts[i - 1]);
+  d.sort((a, b) => a - b); const med = d[Math.floor(d.length / 2)];
+  S.frameMs = med; S.refreshHz = Math.round(1000 / med); return S.refreshHz;
+}
+async function holdFrames(n) { const onset = await nextFrame(); let tt = onset; for (let i = 0; i < n; i++) tt = await nextFrame(); return { onset, dur: tt - onset }; }
+async function holdMs(ms) { const onset = await nextFrame(); let tt = onset; while (tt - onset < ms - S.frameMs / 2) tt = await nextFrame(); return { onset, dur: tt - onset }; }
+
+/* ---------- wait for a response (key or mouse/touch). RT is measured from stimulus onset. ---------- */
+function waitResponse({ keys = {}, els = [], timeout = 0, onset = null } = {}) {
+  return new Promise(async resolve => {
+    let done = false, tmr = null; const cleanups = [];
+    const finish = (resp, ts, method) => {
+      if (done) return; done = true; if (tmr) clearTimeout(tmr);
+      cleanups.forEach(f => f());
+      resolve({ resp, rt: resp == null ? null : Math.max(0, ts - onset), method, onset });
+    };
+    const kd = e => {
+      if (e.repeat) return;
+      if (e.key in keys && onset != null && e.timeStamp >= onset - 1) { e.preventDefault(); finish(keys[e.key], e.timeStamp, t('mKey')); }
+    };
+    window.addEventListener('keydown', kd); cleanups.push(() => window.removeEventListener('keydown', kd));
+    els.forEach(({ el, value }) => {
+      const h = e => { if (onset != null) { e.preventDefault(); finish(value, e.timeStamp, t('mMouse')); } };
+      el.addEventListener('pointerdown', h); cleanups.push(() => el.removeEventListener('pointerdown', h));
+    });
+    if (onset == null) onset = await nextFrame();
+    if (timeout > 0) tmr = setTimeout(() => finish(null, now(), t('mTimeout')), Math.max(0, timeout - (now() - onset)));
+  });
+}
+function waitKeyOrClick(btn, keys = [' ', 'Enter']) {
+  return new Promise(res => {
+    const kd = e => { if (keys.includes(e.key)) { e.preventDefault(); done(); } };
+    const done = () => { window.removeEventListener('keydown', kd); btn && btn.removeEventListener('click', done); res(); };
+    setTimeout(() => { window.addEventListener('keydown', kd); btn && btn.addEventListener('click', done); }, 350);
+  });
+}
+
+/* ---------- message screen ---------- */
+async function message({ title = '', html = '', button }) {
+  const m = $('#msg');
+  m.innerHTML = `<div class="card">${title ? `<h2>${title}</h2>` : ''}<div>${html}</div>
+    <div class="row end" style="margin-top:28px"><button class="btn" id="msgBtn">${button || t('continue')} ➜</button></div>
+    <p class="sub" style="text-align:right;margin:10px 0 0">${t('orSpace', { k: t('spaceKey') })}</p></div>`;
+  showScreen('msg'); $('#msgBtn').focus();
+  await waitKeyOrClick($('#msgBtn'));
+}
+
+/* ---------- break between parts ---------- */
+async function restScreen(seconds, doneParts, totalParts) {
+  const m = $('#msg'); const t0 = now();
+  m.innerHTML = `<div class="card" style="text-align:center">
+    <h2>${t('restTitle')}</h2>
+    <p>${t('restDone', { d: doneParts, t: totalParts })}</p>
+    <div class="progress"><div style="width:${doneParts / totalParts * 100}%"></div></div>
+    <p>${t('restRelax')}</p>
+    <div class="big-count" id="cd">${seconds}</div><p class="sub" id="cdlab">${t('seconds')}</p>
+    <div class="row center"><button class="btn" id="restBtn" disabled>${t('ready')} ➜</button></div></div>`;
+  showScreen('msg');
+  const btn = $('#restBtn');
+  for (let s = seconds; s > 0; s--) { $('#cd').textContent = s; await sleep(1000 - ((now() - t0) % 1000) + 5); }
+  $('#cd').textContent = '✓'; $('#cdlab').textContent = t('restOver');
+  btn.disabled = false; btn.focus(); beep(660, 200, 0.15);
+  await waitKeyOrClick(btn);
+  const dur = now() - t0; S.rests.push({ afterPart: doneParts, ms: Math.round(dur) }); return dur;
+}
+
+/* ---------- countdown ---------- */
+async function countdown(n = 3) {
+  for (let i = n; i > 0; i--) { stage(`<div class="fix" style="font-size:140px;color:var(--pri)">${i}</div><div class="topinfo">${t('getReady')}</div>`); await sleep(800); }
+  stage(''); await sleep(300);
+}
+
+/* ---------- top bar (back link + language) – visible on the intro screen only ---------- */
+function topbarHTML() {
+  return `<a class="backlink" href="../index.html?lang=${LANG}">${t('back')}</a>
+    <label class="langpick"><span>🌐 ${t('langLabel')}</span>
+      <select id="langSel" aria-label="Language">${Object.entries(LANGS).map(([k, v]) => `<option value="${k}"${k === LANG ? ' selected' : ''}>${v}</option>`).join('')}</select></label>`;
+}
+
+/* ---------- intro screen. specFn() returns {title, subtitle, body, estimate}; re-rendered when the language changes ---------- */
+function buildIntro(specFn) {
+  let hz = null;
+  const render = () => {
+    const keep = {}; document.querySelectorAll('#intro input, #intro select').forEach(el => { if (el.id) keep[el.id] = el.value; });
+    const sp = specFn();
+    document.title = sp.title;
+    $('#topbar').innerHTML = topbarHTML();
+    $('#intro').innerHTML = `<div class="card">
+      <h1>${sp.title}</h1><p class="sub">${sp.subtitle || ''}</p>
+      ${sp.body}
+      <p class="note">${t('estimate', { e: sp.estimate })}</p>
+      <div class="field"><label for="pid">${t('pidLabel')}</label>
+        <input id="pid" autocomplete="off" placeholder="${t('pidPh')}"></div>
+      <div class="row">
+        <button class="btn secondary" id="fsBtn">${t('fullscreen')}</button>
+        <button class="btn" id="startBtn">${t('startPractice')} ➜</button>
+      </div>
+      <div class="researcher" id="rinfo">${t('checking')}</div></div>`;
+    Object.entries(keep).forEach(([id, v]) => { const el = document.getElementById(id); if (el) el.value = v; });
+    $('#langSel').onchange = e => { setLang(e.target.value); render(); };
+    $('#fsBtn').onclick = () => { const d = document.documentElement; (d.requestFullscreen || d.webkitRequestFullscreen || (() => { })).call(d); };
+    showRinfo();
+    bind();
+  };
+  const showRinfo = () => {
+    if (hz == null) return;
+    $('#rinfo').innerHTML = t('rinfo', { hz, fm: r1(S.frameMs) }) +
+      (TEST_META.frameCritical && Math.abs(hz - 60) > 3 ? `<b style="color:var(--bad)">${t('rwarn')}</b>` : '') + t('rdl');
+  };
+  let resolveFn;
+  const bind = () => {
+    const go = () => {
+      const v = $('#pid').value.trim();
+      if (!v) { $('#pid').focus(); $('#pid').style.borderColor = 'var(--bad)'; return; }
+      S.pid = v; S.startedISO = new Date().toISOString(); S.tSession = now(); S.running = true;
+      const d = document.documentElement; if (!document.fullscreenElement && d.requestFullscreen) d.requestFullscreen().catch(() => { });
+      resolveFn();
+    };
+    $('#startBtn').onclick = go;
+    $('#pid').addEventListener('keydown', e => { if (e.key === 'Enter') go(); });
+  };
+  render(); showScreen('intro');
+  measureRefresh().then(h => { hz = h; showRinfo(); });
+  return new Promise(res => { resolveFn = res; });
+}
+window.addEventListener('beforeunload', e => { if (S.running) { e.preventDefault(); e.returnValue = ''; } });
+
+function markMainStart() { S.tMainStart = now(); S.rests = []; }
+function markMainEnd() { S.tMainEnd = now(); S.running = false; }
+function timeSummary() {
+  const total = S.tMainEnd - S.tMainStart, rest = S.rests.reduce((s, r) => s + r.ms, 0);
+  return { mainTotalMs: Math.round(total), restMs: Math.round(rest), activeMs: Math.round(total - rest), sessionMs: Math.round(S.tMainEnd - S.tSession) };
+}
+function timeStats() {
+  const tm = timeSummary();
+  return [
+    { k: t('tActive'), v: fmtMs(tm.activeMs), u: 'ms' },
+    { k: t('tRest'), v: fmtMs(tm.restMs), u: `ms · ${S.rests.length} ${t('times')}` },
+    { k: t('tMain'), v: fmtMs(tm.mainTotalMs), u: 'ms' },
+    { k: t('tSession'), v: fmtMs(tm.sessionMs), u: 'ms' },
+  ];
+}
+
+/* ---------- export ---------- */
+function download(name, text, type) {
+  const b = new Blob([text], { type }); const a = document.createElement('a');
+  a.href = URL.createObjectURL(b); a.download = name; document.body.appendChild(a); a.click();
+  setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500);
+}
+function toCSV(rows, cols) {
+  const q = v => { v = v == null ? '' : String(v); return /[",\n;]/.test(v) ? '"' + v.replace(/"/g, '""') + '"' : v; };
+  return '﻿' + [cols.map(c => q(c.label)).join(',')].concat(rows.map(r => cols.map(c => q(c.csv ? c.csv(r) : r[c.key])).join(','))).join('\r\n');
+}
+function testCode() { return S.test + S.suffix; }
+function fileStem() { const d = new Date(S.startedISO || Date.now()); const p = n => String(n).padStart(2, '0'); return `${testCode()}_${S.pid || 'NA'}_${d.getFullYear()}${p(d.getMonth() + 1)}${p(d.getDate())}_${p(d.getHours())}${p(d.getMinutes())}`; }
+
+/* ---------- results screen ---------- */
+function renderResults({ name, stats, columns, rows, extra = '', summary = {}, tableTitle }) {
+  const tm = timeSummary();
+  const meta = [{ key: '_pid', label: t('pid'), csv: () => S.pid }, { key: '_test', label: t('test'), csv: () => testCode() },
+  { key: '_start', label: t('started'), csv: () => S.startedISO }, { key: '_lang', label: t('language'), csv: () => LANG }];
+  const allStats = [{ k: t('pid'), v: esc(S.pid) }].concat(stats, timeStats());
+  const payload = { test: testCode(), testName: name, language: LANG, participant: S.pid, startedAt: S.startedISO, refreshHz: S.refreshHz, frameMs: r1(S.frameMs), time: tm, rests: S.rests, summary, trials: rows };
+  try { localStorage.setItem('result_' + fileStem(), JSON.stringify(payload)); } catch (e) { }
+  const body = rows.map(r => `<tr class="${r._bad ? 'bad' : ''}">${columns.map(c => `<td>${c.fmt ? c.fmt(r) : esc(r[c.key])}</td>`).join('')}</tr>`).join('');
+  $('#result').innerHTML = `<div class="card results-card">
+    <h1>${t('doneTitle')}</h1>
+    <p class="sub">${esc(name)} · ${t('forResearcher')}</p>
+    <div class="stats">${allStats.map(s => `<div class="stat"><div class="k">${s.k}</div><div class="v">${s.v} <span class="u">${s.u || ''}</span></div></div>`).join('')}</div>
+    ${extra}
+    <h2>${tableTitle || t('detailTitle')}</h2>
+    <div class="tablewrap"><table class="res"><thead><tr>${columns.map(c => `<th>${c.label}</th>`).join('')}</tr></thead><tbody>${body}</tbody></table></div>
+    <div class="row">
+      <button class="btn" id="dlCsv">${t('dlCsv')}</button>
+      <button class="btn secondary" id="dlJson">${t('dlJson')}</button>
+      <button class="btn secondary small" id="again" style="margin-left:auto">${t('next')}</button>
+    </div></div>`;
+  showScreen('result');
+  $('#dlCsv').onclick = () => download(fileStem() + '.csv', toCSV(rows, meta.concat(columns.map(c => ({ ...c, csv: c.csv || (r => r[c.key]) })))), 'text/csv;charset=utf-8');
+  $('#dlJson').onclick = () => download(fileStem() + '.json', JSON.stringify(payload, null, 2), 'application/json');
+  $('#again').onclick = () => { if (confirm(t('confirmNext'))) location.reload(); };
+  if (document.fullscreenElement) document.exitFullscreen().catch(() => { });
+}
+const accTag = ok => ok == null ? '—' : ok ? `<span class="tag ok">${t('ok')}</span>` : `<span class="tag bad">${t('bad')}</span>`;
+</script>
+<script>/* ===== Digit Span Forward =====
+   "+" 1000 ms → each digit 1000 ms with a "+" between digits → type the sequence back in order.
+   Starts at 3 digits, max 8. Two trials per length: ≥1 correct → +1 digit; both wrong → stop.
+   15-second break between lengths (up to 5 breaks). */
+const CFG = { fixMs: 1000, digitMs: 1000, gapMs: 500, minLen: 3, maxLen: 8, trialsPerLevel: 2, restSec: 15 };
+const TXT = {
+  vi: {
+    name: 'Bài test Nhớ dãy số', sub: 'Đo khả năng ghi nhớ ngắn hạn', est: 'khoảng 10–30 phút tùy mức độ, có nghỉ 15 giây giữa các mức',
+    body: `<ol class="steps">
+      <li>Màn hình sẽ lần lượt hiện <b>từng chữ số một</b>, mỗi số khoảng 1 giây, giữa các số có dấu <b>+</b>.</li>
+      <li>Hãy <b>ghi nhớ</b> các số theo đúng thứ tự xuất hiện.</li>
+      <li>Khi hết dãy, bạn <b>nhập lại</b> các số theo đúng thứ tự (bấm vào bàn phím số lớn trên màn hình hoặc dùng bàn phím), rồi bấm <b>✓ Xong</b>.</li>
+      <li>Bài bắt đầu với <b>3 chữ số</b>. Mỗi mức có 2 lượt. Nếu nhớ đúng ít nhất 1 lượt, dãy số sẽ dài thêm 1 số (tối đa 8 số). Nếu sai cả 2 lượt, bài test kết thúc.</li></ol>
+      <p>Ví dụ: màn hình hiện <b>5</b> … <b>2</b> … <b>9</b> → bạn nhập <b>5 2 9</b>.</p>
+      <p>Đầu tiên bạn sẽ <b>làm thử 1 lượt</b> (có báo đúng/sai).</p>`,
+    enter: 'Hãy nhập lại dãy số theo <u>đúng thứ tự</u>', del: '⌫ Xóa', done: '✓ Xong',
+    kbHint: `Có thể dùng bàn phím số, phím ${K('⌫')} để xóa, ${K('Enter')} để xác nhận.`, empty: '(chưa nhập)',
+    prIntro: '<p>Hãy nhìn vào giữa màn hình và ghi nhớ các số.</p>', prOk: '✓ Đúng rồi!', prBad: p => `✗ Chưa đúng. Dãy số là: ${p.s}`,
+    prEnd: p => `<p>Bây giờ bắt đầu <b>bài chính</b>. Sẽ không còn báo đúng/sai.</p><p>Giữa các mức có <b>${p.r} giây nghỉ</b>.</p>`,
+    sSpan: 'Độ dài dãy nhớ tối đa (span)', digits: 'chữ số', sScore: 'Số lượt đúng (điểm)', sRtC: 'Thời gian nhập TB (lượt đúng)', sRtA: 'Thời gian nhập TB (mọi lượt)',
+    cLen: 'Số chữ số', cAtt: 'Lần', cSeq: 'Dãy đúng', cResp: 'Đã nhập', cRt: 'Thời gian nhập (ms)', cFirst: 'RT phím đầu (ms)',
+  },
+  en: {
+    name: 'Digit Memory Test (Digit Span)', sub: 'Measures short-term memory', est: 'about 10–30 minutes depending on level, with a 15-second break between levels',
+    body: `<ol class="steps">
+      <li>The screen will show <b>one digit at a time</b>, each for about 1 second, with a <b>+</b> between digits.</li>
+      <li><b>Remember</b> the digits in the order they appear.</li>
+      <li>When the sequence ends, <b>type the digits back</b> in the same order (use the large on-screen keypad or the keyboard), then click <b>✓ Done</b>.</li>
+      <li>The test starts with <b>3 digits</b>. Each length has 2 trials. If you get at least 1 right, the sequence becomes 1 digit longer (up to 8). If both are wrong, the test ends.</li></ol>
+      <p>Example: the screen shows <b>5</b> … <b>2</b> … <b>9</b> → you type <b>5 2 9</b>.</p>
+      <p>First you will do <b>1 practice trial</b> (with feedback).</p>`,
+    enter: 'Type the digits back <u>in the same order</u>', del: '⌫ Delete', done: '✓ Done',
+    kbHint: `You can use the number keys, ${K('⌫')} to delete and ${K('Enter')} to confirm.`, empty: '(nothing entered)',
+    prIntro: '<p>Look at the centre of the screen and remember the digits.</p>', prOk: '✓ Correct!', prBad: p => `✗ Not correct. The sequence was: ${p.s}`,
+    prEnd: p => `<p>Now the <b>main test</b> begins. There will be no more feedback.</p><p>There is a <b>${p.r}-second break</b> between levels.</p>`,
+    sSpan: 'Longest span recalled', digits: 'digits', sScore: 'Correct trials (score)', sRtC: 'Mean entry time (correct)', sRtA: 'Mean entry time (all)',
+    cLen: 'Length', cAtt: 'Attempt', cSeq: 'Sequence', cResp: 'Entered', cRt: 'Entry time (ms)', cFirst: 'First-key RT (ms)',
+  },
+  zh: {
+    name: '数字记忆测试（顺背数字广度）', sub: '测量短时记忆能力', est: '约 10–30 分钟（视水平而定），每级之间休息 15 秒',
+    body: `<ol class="steps">
+      <li>屏幕会<b>逐个显示数字</b>，每个约 1 秒，数字之间有 <b>+</b> 号。</li>
+      <li>请按出现的顺序<b>记住</b>这些数字。</li>
+      <li>数字显示完后，请按<b>原顺序输入</b>（点击屏幕上的大数字键盘或使用键盘），然后点击 <b>✓ 完成</b>。</li>
+      <li>测试从 <b>3 位数</b>开始，每个长度有 2 次。只要答对至少 1 次，数字串就增加 1 位（最多 8 位）；如果 2 次都答错，测试结束。</li></ol>
+      <p>例如：屏幕显示 <b>5</b> … <b>2</b> … <b>9</b> → 您输入 <b>5 2 9</b>。</p>
+      <p>首先进行 <b>1 次练习</b>（会提示对错）。</p>`,
+    enter: '请按<u>原顺序</u>输入数字', del: '⌫ 删除', done: '✓ 完成',
+    kbHint: `也可以使用数字键，按 ${K('⌫')} 删除，按 ${K('Enter')} 确认。`, empty: '（尚未输入）',
+    prIntro: '<p>请注视屏幕中央并记住数字。</p>', prOk: '✓ 正确！', prBad: p => `✗ 不正确。数字串是：${p.s}`,
+    prEnd: p => `<p>现在开始<b>正式测试</b>，不再提示对错。</p><p>每级之间有 <b>${p.r} 秒休息</b>。</p>`,
+    sSpan: '最长记忆广度', digits: '位', sScore: '正确次数（得分）', sRtC: '平均输入时间（正确）', sRtA: '平均输入时间（全部）',
+    cLen: '位数', cAtt: '次', cSeq: '正确数字串', cResp: '输入', cRt: '输入时间（毫秒）', cFirst: '首键反应时（毫秒）',
+  },
+};
+
+function makeSeq(len) { const s = []; while (s.length < len) { const d = 1 + Math.floor(Math.random() * 9); if (s.length && d === s[s.length - 1]) continue; s.push(d); } return s.join(''); }
+
+async function presentSeq(seq) {
+  stage(`<div class="fix">+</div>`); await holdMs(CFG.fixMs);
+  for (let i = 0; i < seq.length; i++) {
+    stage(`<div class="fix" style="font-size:190px;font-weight:700">${seq[i]}</div>`); await holdMs(CFG.digitMs);
+    if (i < seq.length - 1) { stage(`<div class="fix">+</div>`); await holdMs(CFG.gapMs); }
+  }
+}
+function answer() {
+  return new Promise(async resolve => {
+    const keys = ['1', '2', '3', '4', '5', '6', '7', '8', '9', 'del', '0', 'ok'];
+    stage(`<div style="text-align:center">
+      <div style="font-size:34px;font-weight:700;margin-bottom:14px">${t('enter')}</div>
+      <div id="ans" style="min-height:110px;display:flex;gap:12px;justify-content:center;align-items:center;margin-bottom:22px"></div>
+      <div style="display:grid;grid-template-columns:repeat(3,130px);gap:14px;justify-content:center">
+        ${keys.map(k => `<button class="btn ${k === 'del' ? 'secondary' : ''}" data-k="${k}" style="min-height:96px;font-size:${k.length > 1 ? 26 : 46}px;padding:0">${k === 'del' ? t('del') : k === 'ok' ? t('done') : k}</button>`).join('')}
+      </div>
+      <p class="sub" style="margin-top:16px">${t('kbHint')}</p></div>`);
+    let v = '', firstKey = null; const onset = await nextFrame();
+    const draw = () => { $('#ans').innerHTML = v ? v.split('').map(d => `<span style="display:inline-flex;width:80px;height:100px;align-items:center;justify-content:center;border:3px solid var(--ink);border-radius:12px;font-size:60px;font-weight:800;background:#fff">${d}</span>`).join('') : `<span class="sub">${t('empty')}</span>`; };
+    draw();
+    const act = (k, ts) => {
+      if (/^\d$/.test(k)) { if (v.length < 12) { v += k; if (firstKey == null) firstKey = ts - onset; } }
+      else if (k === 'del') v = v.slice(0, -1);
+      else if (k === 'ok') { if (!v) return; cleanup(); resolve({ resp: v, rt: Math.round(ts - onset), firstKeyRt: firstKey == null ? null : Math.round(firstKey) }); return; }
+      draw();
+    };
+    const kd = e => { if (/^\d$/.test(e.key)) act(e.key, e.timeStamp); else if (e.key === 'Backspace') act('del', e.timeStamp); else if (e.key === 'Enter') act('ok', e.timeStamp); };
+    const pd = e => { const b = e.target.closest('button[data-k]'); if (b) { e.preventDefault(); act(b.dataset.k, e.timeStamp); } };
+    const cleanup = () => { window.removeEventListener('keydown', kd); document.removeEventListener('pointerdown', pd); };
+    window.addEventListener('keydown', kd); document.addEventListener('pointerdown', pd);
+  });
+}
+
+(async function main() {
+  await buildIntro(() => ({ title: t('name'), subtitle: t('sub'), estimate: t('est'), body: t('body') }));
+  await message({ title: t('practice'), html: t('prIntro'), button: t('startPractice') });
+  await countdown();
+  const ps = makeSeq(3); await presentSeq(ps); const pa = await answer();
+  stage(pa.resp === ps ? `<div class="feedback ok">${t('prOk')}</div>` : `<div class="feedback bad">${t('prBad', { s: ps.split('').join(' ') })}</div>`); await sleep(2200);
+  await message({ title: t('practiceEnd'), html: t('prEnd', { r: CFG.restSec }), button: t('startMain') });
+
+  markMainStart();
+  const rows = []; let n = 0, maxSpan = 0; const totalLevels = CFG.maxLen - CFG.minLen + 1;
+  for (let len = CFG.minLen; len <= CFG.maxLen; len++) {
+    await countdown(); let correctHere = 0;
+    for (let a = 1; a <= CFG.trialsPerLevel; a++) {
+      const seq = makeSeq(len); await presentSeq(seq); const res = await answer(); n++;
+      const acc = res.resp === seq ? 1 : 0; correctHere += acc;
+      rows.push({ n, len, attempt: a, seq, resp: res.resp, acc, rt: res.rt, firstKeyRt: res.firstKeyRt, _bad: !acc });
+      stage(''); await sleep(600);
+    }
+    if (correctHere > 0) maxSpan = len;
+    if (correctHere === 0 || len === CFG.maxLen) break;
+    await restScreen(CFG.restSec, len - CFG.minLen + 1, totalLevels);
+  }
+  markMainEnd();
+  const correct = rows.filter(r => r.acc).length;
+  const summary = { correct, total: rows.length, accuracyPct: pct(correct, rows.length), maxSpan, meanRT: r1(mean(rows.map(r => r.rt))), meanRTcorrect: r1(mean(rows.filter(r => r.acc).map(r => r.rt))) };
+  renderResults({
+    name: t('name'), summary,
+    stats: [
+      { k: t('sSpan'), v: maxSpan || '—', u: t('digits') },
+      { k: t('sScore'), v: `${correct}/${rows.length}`, u: `${summary.accuracyPct}%` },
+      { k: t('sRtC'), v: fmtMs(summary.meanRTcorrect), u: 'ms' },
+      { k: t('sRtA'), v: fmtMs(summary.meanRT), u: 'ms' },
+    ],
+    columns: [
+      { key: 'n', label: t('cTrial') }, { key: 'len', label: t('cLen') }, { key: 'attempt', label: t('cAtt') }, { key: 'seq', label: t('cSeq') },
+      { key: 'resp', label: t('cResp') }, { key: 'acc', label: t('cResult'), fmt: r => accTag(!!r.acc), csv: r => r.acc },
+      { key: 'rt', label: t('cRt') }, { key: 'firstKeyRt', label: t('cFirst'), fmt: r => r.firstKeyRt ?? '—' },
+    ], rows,
+  });
+})();
+</script>
+</body></html>

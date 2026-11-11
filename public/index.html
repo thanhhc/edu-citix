@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bộ bài test nhận thức · Cognitive Test Suite</title>
+<meta name="description" content="Cognitive test suite (Flanker, Trail Making, Digit Span, UFOV, Mental Rotation) that runs in the browser. Vietnamese, English, Simplified Chinese.">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<style>
+:root{--bg:#FBF8F2;--panel:#fff;--ink:#1B1B1B;--muted:#4A4A4A;--line:#D8D2C6;--pri:#0B5CAD;--pri-dark:#084585;--warn:#7A4A00;--warn-bg:#FFF2D6;--bad:#9F1D16;--bad-bg:#FDECEA;--ok-bg:#E8F1FB}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:"Segoe UI","Helvetica Neue",Arial,"Noto Sans","PingFang SC","Microsoft YaHei","Noto Sans CJK SC","Hiragino Sans GB",sans-serif;font-size:22px;line-height:1.55;-webkit-font-smoothing:antialiased}
+a{color:var(--pri)}
+.wrap{max-width:1240px;margin:0 auto;padding:0 24px}
+header{position:sticky;top:0;z-index:10;background:rgba(251,248,242,.95);backdrop-filter:blur(4px);border-bottom:1px solid var(--line)}
+header .wrap{display:flex;align-items:center;justify-content:space-between;gap:16px;min-height:76px}
+.brand{display:flex;align-items:center;gap:12px;font-weight:800;font-size:22px;color:var(--ink);text-decoration:none}
+.brand svg{flex:none}
+.langpick{display:flex;align-items:center;gap:10px;font-size:19px;font-weight:700;color:var(--muted)}
+.langpick select{font:inherit;font-size:21px;font-weight:700;color:var(--ink);padding:8px 12px;border:2px solid var(--line);border-radius:12px;background:#fff;cursor:pointer}
+.langpick select:focus-visible,.btn:focus-visible,.card:focus-visible{outline:4px solid #F2B600;outline-offset:3px}
+h1{font-size:46px;line-height:1.2;margin:40px 0 10px}
+.lead{font-size:23px;color:var(--muted);margin:0 0 28px;max-width:62ch}
+.notice{display:grid;grid-template-columns:1fr auto;gap:20px;align-items:center;background:var(--ok-bg);border:2px solid #BFD6EE;border-radius:18px;padding:22px 26px;margin:0 0 16px}
+.notice p{margin:0}
+.btn{font:inherit;font-size:22px;font-weight:800;display:inline-flex;align-items:center;gap:10px;min-height:64px;padding:10px 26px;border-radius:14px;border:3px solid var(--pri);background:var(--pri);color:#fff;text-decoration:none;white-space:nowrap}
+.btn:hover{background:var(--pri-dark);border-color:var(--pri-dark)}
+.warning{display:flex;gap:14px;align-items:flex-start;background:var(--bad-bg);color:var(--bad);border:2px solid #F3C2BE;border-radius:18px;padding:18px 24px;margin:0 0 36px;font-weight:600}
+.warning svg{flex:none;margin-top:3px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:20px;margin:0 0 40px}
+.card{display:flex;flex-direction:column;gap:10px;background:var(--panel);border:2px solid var(--line);border-radius:18px;padding:24px;text-decoration:none;color:var(--ink);min-height:230px;transition:border-color .15s,box-shadow .15s,transform .15s}
+.card:hover{border-color:var(--pri);box-shadow:0 8px 24px rgba(11,92,173,.12);transform:translateY(-2px)}
+.card .top{display:flex;align-items:center;gap:14px}
+.num{flex:none;width:52px;height:52px;border-radius:50%;background:var(--pri);color:#fff;display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:800}
+.card h2{font-size:26px;line-height:1.25;margin:0}
+.card p{margin:0;color:var(--muted);font-size:20px}
+.meta{display:flex;flex-wrap:wrap;gap:8px;margin-top:auto;padding-top:6px}
+.chip{font-size:17px;font-weight:700;padding:4px 12px;border-radius:999px;background:#F3EEE3;color:#3F3A30}
+.go{font-weight:800;color:var(--pri);font-size:21px}
+footer{border-top:1px solid var(--line);padding:24px 0 40px;color:var(--muted);font-size:18px}
+footer .wrap{display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px}
+@media (max-width:720px){body{font-size:20px}h1{font-size:34px;margin-top:28px}.notice{grid-template-columns:1fr}.brand span{display:none}.grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<header><div class="wrap">
+  <a class="brand" href="./" aria-label="Home">
+    <svg width="40" height="40" viewBox="0 0 40 40" aria-hidden="true"><rect width="40" height="40" rx="10" fill="#0B5CAD"/><circle cx="14" cy="15" r="5" fill="#fff"/><circle cx="27" cy="25" r="5" fill="#fff"/><path d="M14 15 L27 25" stroke="#fff" stroke-width="3"/></svg>
+    <span data-t="brand">edu.citix.app</span>
+  </a>
+  <label class="langpick"><span data-t="lang">🌐 Ngôn ngữ</span>
+    <select id="langSel" aria-label="Language">
+      <option value="vi">Tiếng Việt</option><option value="en">English</option><option value="zh">简体中文</option>
+    </select></label>
+</div></header>
+
+<main class="wrap">
+  <h1 data-t="title"></h1>
+  <p class="lead" data-t="lead"></p>
+
+  <section class="notice">
+    <p data-t="notice"></p>
+    <a class="btn" id="mailBtn" href="mailto:thanh.huynh.biz@gmail.com?subject=Research%20test%20request">✉ <span data-t="mail"></span></a>
+  </section>
+
+  <section class="warning" role="note">
+    <svg width="26" height="26" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2 1 21h22L12 2zm0 6 .01 7M12 18h.01" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <span data-t="warning"></span>
+  </section>
+
+  <section class="grid" id="grid"></section>
+</main>
+
+<footer><div class="wrap"><span data-t="privacy"></span><span>© 2026 edu.citix.app · <span data-t="license"></span></span></div></footer>
+
+<script>
+const TESTS = [
+  { file: '1-flanker', dur: { vi: '20–30 phút', en: '20–30 min', zh: '20–30 分钟' } },
+  { file: '2-trail-making', dur: { vi: '~15 phút', en: '~15 min', zh: '约 15 分钟' } },
+  { file: '3-digit-span', dur: { vi: '10–30 phút', en: '10–30 min', zh: '10–30 分钟' } },
+  { file: '4-ufov-vehicles', dur: { vi: '~20 phút', en: '~20 min', zh: '约 20 分钟' } },
+  { file: '5-ufov-hanzi', dur: { vi: '~20 phút', en: '~20 min', zh: '约 20 分钟' } },
+  { file: '6-mrt-3d', dur: { vi: '~30 phút', en: '~30 min', zh: '约 30 分钟' }, v3: true },
+  { file: '7-mrt-hanzi', dur: { vi: '~30 phút', en: '~30 min', zh: '约 30 分钟' }, v3: true },
+];
+const T = {
+  vi: {
+    lang: '🌐 Ngôn ngữ', title: 'Bộ bài test nhận thức',
+    lead: 'Bảy bài test chạy ngay trên trình duyệt máy tính. Chọn một bài để bắt đầu – mỗi bài có phần hướng dẫn, làm thử, thời gian nghỉ và màn hình kết quả có thể tải về (CSV/JSON).',
+    notice: 'Bộ bài test này được tôi xây dựng riêng cho nghiên cứu của vợ tôi. Nếu bạn cần một loại bài test khác, hãy gửi email cho tôi – <b>miễn phí</b> nếu bạn làm việc trong lĩnh vực giáo dục.',
+    mail: 'Gửi email',
+    warning: 'Không sử dụng bộ công cụ và các bài test này cho mục đích thương mại khi chưa thông báo cho tôi.',
+    privacy: 'Kết quả chỉ lưu trên máy của bạn – không có dữ liệu nào được gửi lên máy chủ.', license: 'Chỉ dùng cho mục đích phi thương mại',
+    start: 'Bắt đầu →', versions: '3 phiên bản', best: 'Dùng máy tính có bàn phím & chuột',
+    names: ['Mũi tên (Flanker)', 'Nối số – Nối chữ (Trail Making)', 'Nhớ dãy số (Digit Span)', 'Tầm nhìn hữu ích – Hình xe (UFOV)', 'Tầm nhìn hữu ích – Chữ Hán (UFOV)', 'Xoay hình khối 3D (MRT)', 'Xoay hình chữ Hán (MRT)'],
+    desc: ['Tập trung và bỏ qua yếu tố gây nhiễu.', 'Tốc độ tìm kiếm bằng mắt và khả năng chuyển đổi linh hoạt.', 'Trí nhớ ngắn hạn: nhớ và nhập lại dãy số.', 'Phân chia chú ý giữa trung tâm và xung quanh tầm nhìn, dùng hình xe.', 'Phân chia chú ý giữa trung tâm và xung quanh tầm nhìn, dùng chữ Hán.', 'Hình dung và xoay khối lập phương trong đầu.', 'Hình dung và xoay chữ Hán hiếm gặp trong đầu.'],
+  },
+  en: {
+    lang: '🌐 Language', title: 'Cognitive Test Suite',
+    lead: 'Seven tests that run directly in a desktop browser. Choose one to begin – each test has instructions, practice, breaks and a results screen you can download (CSV/JSON).',
+    notice: 'I built this test suite specifically for my wife\'s research. If you need a different kind of test, send me an email – it\'s <b>free</b> if you work in education.',
+    mail: 'Send email',
+    warning: 'Do not use these tools or this test suite for commercial purposes without notifying me.',
+    privacy: 'Results stay on your computer – no data is sent to any server.', license: 'Non-commercial use only',
+    start: 'Start →', versions: '3 versions', best: 'Use a computer with keyboard & mouse',
+    names: ['Arrow Test (Flanker)', 'Connect the Circles (Trail Making)', 'Digit Memory (Digit Span)', 'Useful Field of View – Vehicles (UFOV)', 'Useful Field of View – Chinese Characters (UFOV)', 'Mental Rotation – 3D Blocks (MRT)', 'Mental Rotation – Chinese Characters (MRT)'],
+    desc: ['Focused attention and ignoring distractions.', 'Visual search speed and mental flexibility.', 'Short-term memory: remember and re-enter digit sequences.', 'Dividing attention between the centre and edges of vision, with vehicle pictures.', 'Dividing attention between the centre and edges of vision, with Chinese characters.', 'Picturing and rotating cube figures in your mind.', 'Picturing and rotating rare Chinese characters in your mind.'],
+  },
+  zh: {
+    lang: '🌐 语言', title: '认知测试套件',
+    lead: '七项可直接在电脑浏览器中运行的测试。选择一项开始——每项测试都包含说明、练习、休息以及可下载（CSV/JSON）的结果页面。',
+    notice: '这套测试是我专门为妻子的研究而制作的。如果您需要其他类型的测试，请给我发邮件——如果您从事教育工作，<b>完全免费</b>。',
+    mail: '发送邮件',
+    warning: '未经通知本人，请勿将这些工具和测试用于商业用途。',
+    privacy: '结果仅保存在您的电脑上，不会向任何服务器发送数据。', license: '仅限非商业用途',
+    start: '开始 →', versions: '3 个版本', best: '请使用带键盘和鼠标的电脑',
+    names: ['箭头测试（Flanker）', '连线测试（Trail Making）', '数字记忆（顺背数字广度）', '有用视野 – 车辆图形版（UFOV）', '有用视野 – 汉字版（UFOV）', '心理旋转 – 3D 方块（MRT）', '心理旋转 – 汉字（MRT）'],
+    desc: ['注意力集中及排除干扰的能力。', '视觉搜索速度和认知灵活性。', '短时记忆：记住并按顺序输入数字串。', '用车辆图形测量在视野中央与周边之间分配注意力的能力。', '用汉字测量在视野中央与周边之间分配注意力的能力。', '在脑海中想象并旋转立体方块。', '在脑海中想象并旋转生僻汉字。'],
+  },
+};
+function getLang() {
+  const q = new URLSearchParams(location.search).get('lang');
+  if (q && T[q]) return q;
+  try { const s = localStorage.getItem('edu_lang'); if (s && T[s]) return s; } catch (e) { }
+  return 'vi';
+}
+function render(lang) {
+  const L = T[lang];
+  document.documentElement.lang = lang === 'zh' ? 'zh-CN' : lang;
+  document.title = L.title + ' · edu.citix.app';
+  document.querySelectorAll('[data-t]').forEach(el => { const k = el.dataset.t; if (k in L) el.innerHTML = L[k]; });
+  document.getElementById('langSel').value = lang;
+  document.getElementById('grid').innerHTML = TESTS.map((x, i) => `
+    <a class="card" href="tests/${x.file}.html?lang=${lang}">
+      <div class="top"><div class="num">${i + 1}</div><h2>${L.names[i]}</h2></div>
+      <p>${L.desc[i]}</p>
+      <div class="meta"><span class="chip">⏱ ${x.dur[lang]}</span>${x.v3 ? `<span class="chip">${L.versions}</span>` : ''}</div>
+      <span class="go">${L.start}</span>
+    </a>`).join('');
+}
+let LANG = getLang();
+render(LANG);
+document.getElementById('langSel').addEventListener('change', e => {
+  LANG = e.target.value;
+  try { localStorage.setItem('edu_lang', LANG); } catch (err) { }
+  const u = new URL(location.href); u.searchParams.set('lang', LANG); history.replaceState(null, '', u);
+  render(LANG);
+});
+</script>
+</body>
+</html>
